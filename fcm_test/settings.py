@@ -26,6 +26,7 @@ SECRET_KEY = 'django-insecure-fh_hk##1&@4j&sz()blo4$zf&wpiy-h2gotxhsjb1787)&mrec
 DEBUG = False
 
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
 
 ALLOWED_HOSTS = ['*','.herokuapp.com','127.0.0.1',]
 
@@ -150,6 +151,14 @@ STATIC_ROOT = BASE_DIR.joinpath('staticfiles')
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
 
 FCM_DJANGO_SETTINGS = {
         "FCM_SERVER_KEY": "AAAA4llR8L4:APA91bF8dvccVbR2Renr7vgIm5M1WFAw4dMilvjtXMy8WFXXdNLk7B_GJMoQ3sEQGRA6I2Ag4NKSbNt8sm8rJS4TBAXI2SpNKmwBYCv9o1BWW1LUlm52ZQAmpSHOOutZqoMzWpaFphod"
