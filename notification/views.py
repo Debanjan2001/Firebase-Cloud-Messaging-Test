@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from django.shortcuts import render
 from fcm_django.models import FCMDevice
 import rest_framework
@@ -47,6 +47,7 @@ class FCMDeviceDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return FCMDevice.objects.filter(pk = self.kwargs['pk'])
+
         # for i in q:
         #     print(i.registration_id)
         #     if i.registration_id == self.kwargs['registration_id']:
@@ -63,13 +64,13 @@ class PostMessage(APIView):
 
     def get(self, request, format=None):
         sample = {
-                "title": "sample_title", 
-                "message": "sample_msg",
-                "start_time": datetime.now(),
-                "end_time" : datetime.now(),
+                "title": "sample_title (This is Required)", 
+                "message": "sample_msg (This is Required)",
+                "start_time" : str(datetime.now()) + " (Optional.You may not provide it)",
+                "end_time" : str(datetime.now()+timedelta(1)) + " (Optional.You may not provide it)",
                 "extra_data": { 
-                    "data_field1": "data1",
-                    "date_field2": "data2",
+                    "data_field1": "data1 (Optional.You may not provide it)",
+                    "data_field2": "data2 (Optional.You may not provide it)",
                 }
         }
         serializer = MessageSerializer(sample)
@@ -88,18 +89,21 @@ class PostMessage(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def push_notify(data):
-    devices = FCMDevice.objects.filter(active = True)
     title = data.get('title','')
     message = data.get('message','')
     start_time = data.get('start_time',None)
     end_time = data.get('end_time',None)
     extra_data = data.get('extra_data',None)
-    time_to_live = 28*3600
-    if end_time is not None:
-        time_to_live = datetime.parse(end_time) - start_time
-        print(time_to_live)
 
+    time_to_live = 28*3600*24
+
+    # work in progress
+    # if end_time is not None:
+    #     # time_to_live = datetime.parse(end_time) - start_time
+    #     print(time_to_live)
     # print(title)
     
-    # devices.send_message(title = title,message = message)
+    devices = FCMDevice.objects.filter(active = True)
+
+    devices.send_message(title = title,message = message)
         
