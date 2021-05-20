@@ -28,7 +28,6 @@ class FCMDeviceSerializer(serializers.ModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(view_name='notification:fcm-device-detail')
     
-    
     class Meta:
         model = FCMDevice
         fields = '__all__'
@@ -41,3 +40,7 @@ class MessageSerializer(serializers.Serializer):
     extra_data = serializers.JSONField(required = False)
     start_time = serializers.DateTimeField(required = False)
     end_time = serializers.DateTimeField(required = False)
+
+
+class RegistrationCheckSerializer(serializers.Serializer):
+    registration_id = serializers.CharField(required=True)

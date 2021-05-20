@@ -1,14 +1,15 @@
 from datetime import datetime, time, timedelta
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from fcm_django.models import FCMDevice
 import rest_framework
-from rest_framework.decorators import api_view
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import generics
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
-from notification.serializers import FCMDeviceSerializer, MessageSerializer, UserSerializer
+from notification.serializers import FCMDeviceSerializer, MessageSerializer, RegistrationCheckSerializer, UserSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
@@ -23,6 +24,7 @@ def api_root(request, format=None):
         'users': reverse('notification:user-list', request=request, format=format),
         'fcm-devices': reverse('notification:fcm-device-list',request=request,format=format),
         'send-message': reverse('notification:send-message',request=request,format=format),
+        'check-registration' : reverse('notification:check-registration',request=request,format=format),
     })
 
 class UserList(generics.ListCreateAPIView):
@@ -97,3 +99,30 @@ def push_notify(data):
 
     devices.send_message(title = title,body = message )
         
+
+class CheckRegistration(APIView):
+
+    def get(self, request, format=None):
+
+        reg_id = request.query_params.get('reg_id',None)
+
+        if reg_id is None:
+            sample = {
+                    "registration_id" : "your_key_here"
+            }
+            serializer = RegistrationCheckSerializer(sample)
+            return Response(serializer.data,status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
+
+
+        is_registered = False
+        try:
+            FCMDevice.objects.get(registration_id = reg_id,active = True)
+            print("found")
+            # assert(myId == reg_id)
+            is_registered = True
+        except ObjectDoesNotExist:
+            pass
+
+        return Response({"is_registered": is_registered},status=status.HTTP_200_OK)
+
+    

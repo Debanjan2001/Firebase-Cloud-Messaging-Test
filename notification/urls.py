@@ -11,4 +11,6 @@ urlpatterns = [
     path('fcm_devices/',views.FCMDeviceList.as_view(),name = 'fcm-device-list'),
     path('fcm_devices/<int:pk>',views.FCMDeviceDetail.as_view(),name = 'fcm-device-detail'),
     path('send_message/',views.PostMessage.as_view(),name = 'send-message'),
+    path('check_registration/',views.CheckRegistration.as_view(),name = 'check-registration'),
+
 ]
