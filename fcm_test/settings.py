@@ -25,20 +25,22 @@ SECRET_KEY = 'django-insecure-fh_hk##1&@4j&sz()blo4$zf&wpiy-h2gotxhsjb1787)&mrec
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+CORS_ORIGIN_ALLOW_ALL = True
+
+ALLOWED_HOSTS = ['*','.herokuapp.com','127.0.0.1',]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    'corsheaders',
     'fcm_django',
     'rest_framework',
     'notification',
@@ -140,7 +142,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR.joinpath('static')
+STATIC_ROOT = BASE_DIR.joinpath('staticfiles')
+
+STATICFILES_DIRS = (
+    BASE_DIR.joinpath('static'),
+)
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -151,8 +159,6 @@ FCM_DJANGO_SETTINGS = {
         "FCM_SERVER_KEY": "AAAA4llR8L4:APA91bF8dvccVbR2Renr7vgIm5M1WFAw4dMilvjtXMy8WFXXdNLk7B_GJMoQ3sEQGRA6I2Ag4NKSbNt8sm8rJS4TBAXI2SpNKmwBYCv9o1BWW1LUlm52ZQAmpSHOOutZqoMzWpaFphod"
 }
 
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_CREDENTIALS = False
 
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
