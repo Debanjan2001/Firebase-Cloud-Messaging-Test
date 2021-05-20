@@ -103,7 +103,8 @@ def push_notify(data):
     #     print(time_to_live)
     # print(title)
     
-    devices = FCMDevice.objects.filter(active = True)
+    devices = FCMDevice.objects.filter(active = True).all()
+    print(devices)
 
-    devices.send_message(title = title,message = message)
+    devices.send_message(title = title,body = message )
         

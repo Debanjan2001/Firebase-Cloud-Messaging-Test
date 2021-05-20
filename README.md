@@ -29,5 +29,5 @@ Run dev-server
 python manage.py runserver
 ```
 
-Go to http://127.0.0.1:8080/
+Go to http://127.0.0.1:8000/
 Explore the api root. Register some devices using different browser generated tokens and start testing messaging.
