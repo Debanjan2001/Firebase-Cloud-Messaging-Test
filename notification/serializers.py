@@ -13,32 +13,31 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ['url', 'id', 'username','email']
+        fields = ['url', 'id', 'username','password']
+
+    def create(self, validated_data):
+        user = User.objects.create(**validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 
-class FCMDeviceSerializer(serializers.HyperlinkedModelSerializer):
+
+
+class FCMDeviceSerializer(serializers.ModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(view_name='notification:fcm-device-detail')
-    user = HyperlinkedRelatedField(
-        view_name='notification:user-detail',
-        read_only=True,
-    )
+    
     
     class Meta:
         model = FCMDevice
         fields = '__all__'
-        # lookup_field = 'pk'
-        # lookup_url_kwarg = 'pk'
-# 
-    # def get_url(self,object):
-    #     url = '{}{}'.format(self.context['request'].META['HTTP_HOST'],reverse('notification:fcm-device-detail',kwargs = {'pk' : object.pk}))
-    #     return url.format(type = serializers.Field)
-
+       
 
 class MessageSerializer(serializers.Serializer):
 
-    title = serializers.CharField()
-    message = serializers.CharField()
+    title = serializers.CharField(max_length = 500)
+    message = serializers.CharField(required = False)
     extra_data = serializers.JSONField(required = False)
     start_time = serializers.DateTimeField(required = False)
     end_time = serializers.DateTimeField(required = False)

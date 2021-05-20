@@ -25,7 +25,7 @@ def api_root(request, format=None):
         'send-message': reverse('notification:send-message',request=request,format=format),
     })
 
-class UserList(generics.ListAPIView):
+class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -41,31 +41,20 @@ class FCMDeviceList(generics.ListCreateAPIView):
 class FCMDeviceDetail(generics.RetrieveUpdateDestroyAPIView):
     # queryset = FCMDevice.objects.all()
     serializer_class = FCMDeviceSerializer
-    lookup_field = 'pk'
-    lookup_url_kwarg = 'pk'
 
 
     def get_queryset(self):
         return FCMDevice.objects.filter(pk = self.kwargs['pk'])
 
-        # for i in q:
-        #     print(i.registration_id)
-        #     if i.registration_id == self.kwargs['registration_id']:
-        #         print(True)
-        #         return i
-        #     else:
-        #         print(False)
-        #     print(i)
 
-        return q
 
 class PostMessage(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
 
     def get(self, request, format=None):
         sample = {
                 "title": "sample_title (This is Required)", 
-                "message": "sample_msg (This is Required)",
+                "message": "sample_msg (If not given, Empty msg will be taken)",
                 "start_time" : str(datetime.now()) + " (Optional.You may not provide it)",
                 "end_time" : str(datetime.now()+timedelta(1)) + " (Optional.You may not provide it)",
                 "extra_data": { 
@@ -95,7 +84,7 @@ def push_notify(data):
     end_time = data.get('end_time',None)
     extra_data = data.get('extra_data',None)
 
-    time_to_live = 28*3600*24
+    # time_to_live = 28*3600*24
 
     # work in progress
     # if end_time is not None:

@@ -37,12 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+     'corsheaders',
     'fcm_django',
     'rest_framework',
     'notification',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -129,4 +131,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 FCM_DJANGO_SETTINGS = {
         "FCM_SERVER_KEY": "AAAA4llR8L4:APA91bF8dvccVbR2Renr7vgIm5M1WFAw4dMilvjtXMy8WFXXdNLk7B_GJMoQ3sEQGRA6I2Ag4NKSbNt8sm8rJS4TBAXI2SpNKmwBYCv9o1BWW1LUlm52ZQAmpSHOOutZqoMzWpaFphod"
+}
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    )
 }
