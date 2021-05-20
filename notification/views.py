@@ -107,11 +107,8 @@ class CheckRegistration(APIView):
         reg_id = request.query_params.get('reg_id',None)
 
         if reg_id is None:
-            sample = {
-                    "registration_id" : "your_key_here"
-            }
-            serializer = RegistrationCheckSerializer(sample)
-            return Response(serializer.data,status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
+            sample = {"SAMPLE GET CALL": "root/api/check_registration?reg_id=abcdef"}
+            return Response(sample,status=status.HTTP_203_NON_AUTHORITATIVE_INFORMATION)
 
 
         is_registered = False
