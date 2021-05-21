@@ -88,6 +88,13 @@ def push_notify(data):
 
     # time_to_live = 28*3600*24
 
+    if start_time is not None:
+        message = message + f". Your class starts at {start_time}"
+    
+    if end_time is not None:
+        message = message + f". Your class ends at {end_time}"
+
+    
     # work in progress
     # if end_time is not None:
     #     # time_to_live = datetime.parse(end_time) - start_time
