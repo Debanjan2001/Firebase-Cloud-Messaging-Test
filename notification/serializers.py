@@ -1,11 +1,7 @@
 from django.contrib.auth.models import User
-from rest_framework import renderers
-from django.urls import reverse,reverse_lazy
-from django.shortcuts import redirect
-from rest_framework.relations import HyperlinkedRelatedField
-from rest_framework.response import Response
 from rest_framework import serializers
 from fcm_django.models import FCMDevice
+from notification.models import Notification, NotificationStatus
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 
@@ -22,16 +18,14 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         return user
 
 
-
-
 class FCMDeviceSerializer(serializers.ModelSerializer):
 
-    url = serializers.HyperlinkedIdentityField(view_name='notification:fcm-device-detail')
+    # url = serializers.HyperlinkedIdentityField(view_name='notification:fcm-device-detail')
+    # notification = serializers.HyperlinkedRelatedField(view_name='notification:fcm-device-detail')
     
     class Meta:
         model = FCMDevice
-        fields = '__all__'
-       
+        fields = '__all__'       
 
 class MessageSerializer(serializers.Serializer):
 
@@ -41,6 +35,33 @@ class MessageSerializer(serializers.Serializer):
     start_time = serializers.DateTimeField(required = False)
     end_time = serializers.DateTimeField(required = False)
 
+class LoginSerializer(serializers.Serializer):
 
-class RegistrationCheckSerializer(serializers.Serializer):
-    registration_id = serializers.CharField(required=True)
+    username = serializers.CharField(required = True)
+    password = serializers.CharField(required = True)
+    
+
+class NotificationSerializer(serializers.ModelSerializer):
+
+    url = serializers.HyperlinkedIdentityField(view_name='notification:notification-detail')
+
+    class Meta:
+        model = Notification
+        fields = '__all__'
+
+class NotificationStatusSerializer(serializers.ModelSerializer):
+
+    # notification = serializers.HyperlinkedIdentityField(to = view_name='notification:notification-detail')
+
+    title = serializers.SerializerMethodField('get_title')
+    content = serializers.SerializerMethodField('get_content')
+
+    class Meta:
+        model = NotificationStatus
+        fields = '__all__'
+
+    def get_title(self,obj):
+        return obj.notification.title
+
+    def get_content(self,obj):
+        return obj.notification.content
