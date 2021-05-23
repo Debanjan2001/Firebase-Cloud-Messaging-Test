@@ -8,7 +8,7 @@ from fcm_django.models import FCMDevice
 class Notification(models.Model):
 
     title = models.CharField(max_length=100,unique=False)
-    content = models.TextField(max_length=500,unique=False)
+    content = models.TextField(max_length=500,unique=False,blank=True)
     created_on = models.DateTimeField(default=timezone.now)
     receivers = models.ManyToManyField(to= settings.AUTH_USER_MODEL, related_name = 'received_notifications')
     sender = models.ForeignKey(to = settings.AUTH_USER_MODEL, on_delete= models.CASCADE ,related_name = 'sent_notifications')
