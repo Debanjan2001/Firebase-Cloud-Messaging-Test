@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from notification.models import Notification, NotificationStatus
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import request
 from fcm_django.models import FCMDevice
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -154,7 +153,7 @@ def send_notification(data,sender):
         body = message,
         icon = 'https://play-lh.googleusercontent.com/vJhJczbXkqCYkEVPSe6It2k-KqhlD0dDNAZ5txf7ZXhwdtAjcU3BAzbXF3BWwnKpeKg=s200',
         click_action = '/notifications/',
-        time_to_live = 3600
+        time_to_live = 300
     )
 
 
@@ -258,14 +257,17 @@ class UserNotificationList(generics.GenericAPIView):
         all_status_serializer = NotificationStatusSerializer(all_notification_status,many=True,context = context)
 
         # print(notification_serializer.data)        
-
-        response = all_status_serializer.data
+        response = {
+            "unread_count": all_notification_status.filter(is_read = False).count(),
+            "notifications": all_status_serializer.data,
+        }
+        print(response)
         # for i in range(0,len(notification_serializer.data)):
         #     response = response + notification_serializer.data[i] + all_status_serializer.data[i]
 
         # response = notification_serializer.data + all_status_serializer.data
 
-        return Response(response,status=status.HTTP_200_OK)
+        return Response(data = response,status=status.HTTP_200_OK)
 
 class UserNotificationDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
