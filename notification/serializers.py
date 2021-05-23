@@ -20,8 +20,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 class FCMDeviceSerializer(serializers.ModelSerializer):
 
-    # url = serializers.HyperlinkedIdentityField(view_name='notification:fcm-device-detail')
-    # notification = serializers.HyperlinkedRelatedField(view_name='notification:fcm-device-detail')
+    url = serializers.HyperlinkedIdentityField(view_name='notification:fcm-device-detail')
     
     class Meta:
         model = FCMDevice
@@ -44,24 +43,21 @@ class LoginSerializer(serializers.Serializer):
 class NotificationSerializer(serializers.ModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(view_name='notification:notification-detail')
-
     class Meta:
         model = Notification
         fields = '__all__'
 
 class NotificationStatusSerializer(serializers.ModelSerializer):
 
-    # notification = serializers.HyperlinkedIdentityField(to = view_name='notification:notification-detail')
-
-    title = serializers.SerializerMethodField('get_title')
-    content = serializers.SerializerMethodField('get_content')
+    notification = NotificationSerializer()
 
     class Meta:
         model = NotificationStatus
         fields = '__all__'
 
-    def get_title(self,obj):
-        return obj.notification.title
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+        # data is your serialized instance
+        data.get('notification').pop('receivers')
 
-    def get_content(self,obj):
-        return obj.notification.content
+        return data

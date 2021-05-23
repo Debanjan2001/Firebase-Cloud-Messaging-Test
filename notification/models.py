@@ -26,4 +26,4 @@ class NotificationStatus(models.Model):
         verbose_name_plural = "Notification Status"
 
     def __str__(self):
-        return f"Notification#{self.notification.id}-{self.user.username}"
+        return f"Notification#{self.notification.id}-{self.recipient.username}"

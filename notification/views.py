@@ -229,7 +229,7 @@ class NotificationDetail(generics.RetrieveUpdateDestroyAPIView):
 class UserNotificationList(generics.GenericAPIView):
 
     pagination_class = CustomPagination
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     # def get_serializer(self, *args, **kwargs):
     #     return {"data": "hello"}
