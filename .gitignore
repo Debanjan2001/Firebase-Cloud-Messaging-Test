@@ -1,4 +1,4 @@
 env/
 static/
 staticfiles/
-__pycache__
+**/__pycache__/
