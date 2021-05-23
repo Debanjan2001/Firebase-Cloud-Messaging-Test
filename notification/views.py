@@ -237,8 +237,6 @@ class UserNotificationList(generics.GenericAPIView):
     #     # return super().get_serializer(*args, **kwargs)        
 
     def get_queryset(self):
-        if self.request.user.is_authenticated is False:
-            raise Exception
         return self.request.user.notification_status.all().order_by('-notification__created_on')
 
         
@@ -246,7 +244,10 @@ class UserNotificationList(generics.GenericAPIView):
 
         user = request.user
 
-        all_notification_status = user.notification_status.all().order_by('-notification__created_on')
+        if user.is_authenticated is False:
+            return Response(data = {"detail":"Username/password not provided"},status=status.HTTP_401_UNAUTHORIZED)
+
+        all_notification_status = user.notification_status.all().order_by('is_read','-notification__created_on')
         # all_notification = [e.notification for e in all_notification_status]
         
         context = {
@@ -266,6 +267,13 @@ class UserNotificationList(generics.GenericAPIView):
 
         return Response(response,status=status.HTTP_200_OK)
 
+class UserNotificationDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = NotificationStatusSerializer
+    pagination_class = CustomPagination
+    
+    def get_queryset(self):
+        return NotificationStatus.objects.filter(pk = self.kwargs['pk'])
 
 
 

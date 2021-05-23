@@ -43,14 +43,20 @@ class LoginSerializer(serializers.Serializer):
 class NotificationSerializer(serializers.ModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(view_name='notification:notification-detail')
+    sender_name = serializers.SerializerMethodField('get_sender_name')
+    # recipients
     class Meta:
         model = Notification
         fields = '__all__'
 
+    def get_sender_name(self,obj):
+        return obj.sender.username
+
 class NotificationStatusSerializer(serializers.ModelSerializer):
 
-    notification = NotificationSerializer()
-
+    url = serializers.HyperlinkedIdentityField(view_name = 'notification:user-notification-detail')
+    notification = NotificationSerializer(read_only = True)
+    
     class Meta:
         model = NotificationStatus
         fields = '__all__'
@@ -59,5 +65,7 @@ class NotificationStatusSerializer(serializers.ModelSerializer):
         data = super().to_representation(obj)
         # data is your serialized instance
         data.get('notification').pop('receivers')
-
+        print(data["notification"]["sender"]) 
         return data
+
+    
