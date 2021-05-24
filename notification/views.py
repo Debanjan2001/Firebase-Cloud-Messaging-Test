@@ -282,7 +282,18 @@ class UserNotificationDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class MarkNotificationAsRead(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self,request,*args, **kwargs):
+        return Response(
+            data = {
+                "Info": "Sample POST DATA",
+                "id": 2,
+                "mark_all" : True,
+                "Extra info": "Use only one of the two method above",
+            },  
+            status = status.HTTP_203_NON_AUTHORITATIVE_INFORMATION
+        )
 
     def post(self,request,*args, **kwargs):
         user = request.user
