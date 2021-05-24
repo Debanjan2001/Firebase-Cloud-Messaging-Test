@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
+import notification
 from notification.models import Notification, NotificationStatus
 from django.core.exceptions import ObjectDoesNotExist
 from fcm_django.models import FCMDevice
@@ -39,6 +40,7 @@ def api_root(request, format=None):
         'check-registration' : reverse('notification:check-registration',request=request,format=format),
         'notifications':reverse('notification:notification-list',request=request,format=format),
         'user-notifications': reverse('notification:user-notification-list',request=request,format=format),
+        'mark-notification(s)-as-read': reverse('notification:mark-notification-as-read',request=request,format=format),
     })
 
 class UserList(generics.ListCreateAPIView):
@@ -104,7 +106,7 @@ def send_notification(data,sender):
     end_time = data.get('end_time',None)
     extra_data = data.get('extra_data',None)
 
-    # time_to_live = 28*3600*24
+    time_to_live = 1800
 
     if start_time is not None:
         start_time = datetime.strptime(start_time,"%Y-%m-%dT%H:%M:%S%z")
@@ -117,17 +119,18 @@ def send_notification(data,sender):
         end_time = datetime.strftime(end_time,"%c")
         # print(end_time)
         message = message + f". Your class ends at {end_time}"
+        time_to_live = end_time - start_time
 
     # work in progress
-    if end_time is not None:
-        time_to_live = datetime.parse(end_time) - start_time
-        print(time_to_live)
+    # if end_time is not None:
+    #     time_to_live = datetime.parse(end_time) - start_time
+    #     # print(time_to_live)
     
     devices = FCMDevice.objects.filter(active = True).exclude(id = sender.id)
     # print(devices)
 
     receivers = User.objects.all().exclude(id = sender.id)
-    print(len(receivers))
+    # print(len(receivers))
     notification = Notification.objects.create(
         title = title,
         content = message,
@@ -136,7 +139,7 @@ def send_notification(data,sender):
     notification.receivers.set(receivers)
     notification.save()
 
-    print(notification)
+    # print(notification)
 
     notification_status_objects = [
         NotificationStatus(
@@ -152,8 +155,8 @@ def send_notification(data,sender):
         title = title,
         body = message,
         icon = 'https://play-lh.googleusercontent.com/vJhJczbXkqCYkEVPSe6It2k-KqhlD0dDNAZ5txf7ZXhwdtAjcU3BAzbXF3BWwnKpeKg=s200',
-        click_action = '/notifications/',
-        time_to_live = 300
+        click_action = 'api/user_notifications',
+        time_to_live = time_to_live
     )
 
 
@@ -225,20 +228,28 @@ class NotificationDetail(generics.RetrieveUpdateDestroyAPIView):
         return Notification.objects.filter(pk = self.kwargs['pk'])
 
 
-class UserNotificationList(generics.GenericAPIView):
+class UserNotificationPagination(pagination.PageNumberPagination):
 
-    pagination_class = CustomPagination
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 10
 
-    # def get_serializer(self, *args, **kwargs):
-    #     return {"data": "hello"}
-    #     pass
-    #     # return super().get_serializer(*args, **kwargs)        
+    def get_paginated_response(self, data,unread_messages):
+        return Response({
+            'unread_messages': unread_messages,
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'count': self.page.paginator.count,
+            'results': data
+        })
 
-    def get_queryset(self):
-        return self.request.user.notification_status.all().order_by('-notification__created_on')
+class UserNotificationList(APIView):
 
-        
+    permission_classes = [IsAuthenticated]
+    
+    # def get_queryset(self):
+    #     return self.request.user.notification_status.all().order_by('is_read','-notification__created_on')
+
     def get(self, request, *args, **kwargs):
 
         user = request.user
@@ -246,30 +257,21 @@ class UserNotificationList(generics.GenericAPIView):
         if user.is_authenticated is False:
             return Response(data = {"detail":"Username/password not provided"},status=status.HTTP_401_UNAUTHORIZED)
 
-        all_notification_status = user.notification_status.all().order_by('is_read','-notification__created_on')
-        # all_notification = [e.notification for e in all_notification_status]
+        paginator = UserNotificationPagination()
+        notification_status_objects = self.request.user.notification_status.all().order_by('is_read','-notification__created_on')
+
+        paginated_notifications = paginator.paginate_queryset(notification_status_objects,request)
+        context = { "request": request }
+        print(paginated_notifications)
+        notification_status_serializer = NotificationStatusSerializer( paginated_notifications,many=True,context = context)
         
-        context = {
-            "request": request,
-        }
-
-        # notification_serializer = NotificationSerializer(all_notification, many=True, context=context)
-        all_status_serializer = NotificationStatusSerializer(all_notification_status,many=True,context = context)
-
-        # print(notification_serializer.data)        
-        response = {
-            "unread_count": all_notification_status.filter(is_read = False).count(),
-            "notifications": all_status_serializer.data,
-        }
-        print(response)
-        # for i in range(0,len(notification_serializer.data)):
-        #     response = response + notification_serializer.data[i] + all_status_serializer.data[i]
-
-        # response = notification_serializer.data + all_status_serializer.data
-
-        return Response(data = response,status=status.HTTP_200_OK)
+        unread_messages = notification_status_objects.filter(is_read = False).count()
+        response = paginator.get_paginated_response(notification_status_serializer.data,unread_messages)
+        
+        return response
 
 class UserNotificationDetail(generics.RetrieveUpdateDestroyAPIView):
+
     permission_classes = [IsAuthenticated]
     serializer_class = NotificationStatusSerializer
     pagination_class = CustomPagination
@@ -278,4 +280,37 @@ class UserNotificationDetail(generics.RetrieveUpdateDestroyAPIView):
         return NotificationStatus.objects.filter(pk = self.kwargs['pk'])
 
 
+class MarkNotificationAsRead(APIView):
 
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request,*args, **kwargs):
+        user = request.user
+
+        id = request.data.get('id',None)
+        mark_all = request.data.get('mark_all',False)
+
+        if id is None and mark_all is False:
+            return Response( data = {"details":"Invalid Operation: 'mark_all'/'id' is not given"}, status= status.HTTP_400_BAD_REQUEST )
+        
+        def set_read_status(obj):
+            obj.is_read = True
+            return obj
+
+        if mark_all is True:
+            notification_status_objects = [
+                set_read_status(obj)
+                for obj in user.notification_status.all()
+            ]
+            NotificationStatus.objects.bulk_update(notification_status_objects,['is_read'])
+            return Response(data = {"details":"Successful"}, status= status.HTTP_200_OK)
+
+        try:
+            notification_status = user.notification_status.get(id = id)
+            notification_status.is_read = True
+            notification_status.save()
+            return Response(data = {"details":"Successful"}, status= status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response(data = {"details":"Invalid ID/Notification does not exist"}, status= status.HTTP_200_OK)
+
+        

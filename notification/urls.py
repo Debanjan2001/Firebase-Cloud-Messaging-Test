@@ -18,4 +18,5 @@ urlpatterns = [
     path('notifications/<int:pk>', views.NotificationDetail.as_view(),name='notification-detail'),
     path('user_notifications', views.UserNotificationList.as_view(),name ='user-notification-list'),
     path('user_notifications/<int:pk>', views.UserNotificationDetail.as_view(),name ='user-notification-detail'),
+    path('mark_notification_as_read',views.MarkNotificationAsRead.as_view(),name = 'mark-notification-as-read')
 ]
